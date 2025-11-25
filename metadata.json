@@ -1,0 +1,5 @@
+{
+  "name": "CoinKeep",
+  "description": "Умный трекер личных финансов с управлением подписками и ИИ-аналитикой.",
+  "requestFramePermissions": []
+}
