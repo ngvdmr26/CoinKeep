@@ -334,12 +334,7 @@ const App: React.FC = () => {
       localStorage.removeItem('coinkeep_avatar');
       localStorage.removeItem('coinkeep_currency');
       
-      setTransactions([]);
-      setSubscriptions([]);
-      setUserName('');
-      setUserAvatar(null);
-      setShowOnboarding(true);
-      setActiveTab('home');
+      window.location.reload();
     }
   };
 
@@ -458,8 +453,8 @@ const App: React.FC = () => {
         </header>
       )}
 
-      {/* Main Content Area - Full height for AI, padded for others */}
-      <main className={`flex-1 overflow-y-auto animate-fade-in ${activeTab === 'ai' ? 'px-0 pt-0 pb-[80px]' : 'px-6 pb-[100px]'}`}>
+      {/* Main Content Area - Full height for AI with no padding, standard for others */}
+      <main className={`flex-1 animate-fade-in ${activeTab === 'ai' ? 'px-0 pt-0 overflow-hidden relative' : 'px-6 pb-[100px] overflow-y-auto'}`}>
         
         {activeTab === 'home' && (
           <div className="space-y-8 pb-6">

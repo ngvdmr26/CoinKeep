@@ -121,7 +121,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ transactions, totalBal
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-slate-100 shrink-0 pb-safe">
+      <div className="p-4 bg-white border-t border-slate-100 shrink-0 pb-[90px]">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <input
             type="text"
