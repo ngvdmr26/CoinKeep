@@ -31,7 +31,8 @@ import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, CartesianGrid } f
 import { Transaction, MonthlyData, Subscription } from './types.ts';
 import { StatCard } from './components/StatCard.tsx';
 import { TransactionList } from './components/TransactionList.tsx';
-import { AIAssistant } from './components/AIAssistant.tsx';
+// AIAssistant временно отключен
+// import { AIAssistant } from './components/AIAssistant.tsx';
 
 // -- Constants & Helpers --
 
@@ -70,7 +71,8 @@ const BottomNav = ({ active, onChange }: { active: string, onChange: (val: strin
   const items = [
     { id: 'home', icon: <Home size={24} />, label: 'Главная' },
     { id: 'stats', icon: <PieChart size={24} />, label: 'Отчеты' },
-    { id: 'ai', icon: <Sparkles size={24} />, label: 'Советник' },
+    // Вкладка AI отключена
+    // { id: 'ai', icon: <Sparkles size={24} />, label: 'Советник' },
     { id: 'wallet', icon: <Wallet size={24} />, label: 'Кошелек' },
     { id: 'settings', icon: <Settings size={24} />, label: 'Меню' },
   ];
@@ -453,8 +455,8 @@ const App: React.FC = () => {
         </header>
       )}
 
-      {/* Main Content Area - Full height for AI with no padding, standard for others */}
-      <main className={`flex-1 animate-fade-in ${activeTab === 'ai' ? 'px-0 pt-0 overflow-hidden relative' : 'px-6 pb-[100px] overflow-y-auto'}`}>
+      {/* Main Content Area - Standard for all currently active tabs */}
+      <main className="flex-1 animate-fade-in px-6 pb-[100px] overflow-y-auto">
         
         {activeTab === 'home' && (
           <div className="space-y-8 pb-6">
@@ -552,11 +554,6 @@ const App: React.FC = () => {
                 />
             </div>
           </div>
-        )}
-
-        {/* AI Separate Tab - Occupies full height minus bottom bar */}
-        {activeTab === 'ai' && (
-           <AIAssistant transactions={transactions} totalBalance={totalBalance} />
         )}
 
         {activeTab === 'wallet' && (
