@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Transaction, AIInsight } from "../types";
+import { Transaction, AIInsight } from "../types.ts";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 

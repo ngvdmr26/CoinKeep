@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Loader2, Send, Bot } from 'lucide-react';
-import { AIInsight, Transaction } from '../types';
-import { analyzeFinances, chatWithAdvisor } from '../services/geminiService';
+import { AIInsight, Transaction } from '../types.ts';
+import { analyzeFinances, chatWithAdvisor } from '../services/geminiService.ts';
 
 interface AIAssistantProps {
   transactions: Transaction[];

@@ -23,15 +23,15 @@ import {
   Sparkles,
   Upload,
   LogOut,
-  ChevronRight,
-  RefreshCw
+  ChevronRight
 } from 'lucide-react';
 import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, CartesianGrid } from 'recharts';
 
-import { Transaction, MonthlyData, Subscription } from './types';
-import { StatCard } from './components/StatCard';
-import { TransactionList } from './components/TransactionList';
-import { AIAssistant } from './components/AIAssistant';
+// Исправлены импорты: добавлены расширения файлов
+import { Transaction, MonthlyData, Subscription } from './types.ts';
+import { StatCard } from './components/StatCard.tsx';
+import { TransactionList } from './components/TransactionList.tsx';
+import { AIAssistant } from './components/AIAssistant.tsx';
 
 // -- Constants & Helpers --
 

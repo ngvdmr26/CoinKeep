@@ -1,5 +1,5 @@
 import React from 'react';
-import { Transaction } from '../types';
+import { Transaction } from '../types.ts';
 import { ShoppingBag, Coffee, Home, Car, Smartphone, Zap, Trash2, Dumbbell, Gift } from 'lucide-react';
 
 interface TransactionListProps {
