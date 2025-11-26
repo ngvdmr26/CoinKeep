@@ -44,7 +44,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
 
   if (transactions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-10 text-center opacity-50">
+      <div className="flex flex-col items-center justify-center py-10 text-center opacity-50 animate-enter">
         <ShoppingBag className="mb-2 text-slate-400" size={32} />
         <p className="text-sm font-medium text-slate-500">Пока нет операций</p>
       </div>
@@ -53,10 +53,14 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
 
   return (
     <div className="space-y-4">
-      {displayTransactions.map((tx) => (
-        <div key={tx.id} className="flex items-center justify-between group">
+      {displayTransactions.map((tx, index) => (
+        <div 
+          key={tx.id} 
+          className="flex items-center justify-between group animate-enter opacity-0"
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${getCategoryColor(tx.category)}`}>
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${getCategoryColor(tx.category)}`}>
               {getIcon(tx.category)}
             </div>
             <div>
@@ -71,7 +75,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
             {onDelete && (
               <button 
                 onClick={(e) => { e.stopPropagation(); onDelete(tx.id); }}
-                className="text-slate-300 hover:text-rose-500 transition-colors"
+                className="text-slate-300 hover:text-rose-500 transition-colors hover:scale-110 active:scale-90"
               >
                 <Trash2 size={16} />
               </button>

@@ -19,7 +19,7 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color })
   };
 
   return (
-    <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between h-28 min-w-[140px]">
+    <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between h-28 min-w-[140px] animate-scale-in transition-transform hover:-translate-y-1 duration-300">
       <div className={`self-start p-2 rounded-xl ${getColors()} mb-2`}>
         {icon}
       </div>

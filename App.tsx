@@ -78,15 +78,15 @@ const BottomNav = ({ active, onChange }: { active: string, onChange: (val: strin
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 pb-safe pt-2 px-4 flex justify-between items-end h-[80px] z-40 max-w-[480px] mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-100 pb-safe pt-2 px-4 flex justify-between items-end h-[80px] z-40 max-w-[480px] mx-auto transition-all">
       {items.map((item) => (
         <button 
           key={item.id}
           onClick={() => onChange(item.id)}
-          className={`flex flex-col items-center gap-1 mb-4 transition-all w-full ${active === item.id ? 'text-indigo-600 scale-105' : 'text-slate-400'}`}
+          className={`flex flex-col items-center gap-1 mb-4 transition-all duration-300 w-full tap-active ${active === item.id ? 'text-indigo-600 -translate-y-1' : 'text-slate-400'}`}
         >
           {item.icon}
-          <span className="text-[10px] font-medium">{item.label}</span>
+          <span className={`text-[10px] font-medium transition-opacity duration-300 ${active === item.id ? 'opacity-100' : 'opacity-70'}`}>{item.label}</span>
         </button>
       ))}
     </div>
@@ -94,13 +94,16 @@ const BottomNav = ({ active, onChange }: { active: string, onChange: (val: strin
 };
 
 const CreditCardComponent = ({ balance, currency, ownerName }: { balance: number, currency: string, ownerName: string }) => (
-  <div className="w-full aspect-[1.586] bg-gradient-to-br from-violet-600 via-indigo-600 to-indigo-800 rounded-[2rem] p-6 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden transform transition-transform hover:scale-[1.01]">
-    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
-    <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-400 opacity-20 rounded-full blur-xl"></div>
+  <div className="w-full aspect-[1.586] bg-gradient-to-br from-violet-600 via-indigo-600 to-indigo-800 rounded-[2rem] p-6 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden transform transition-all duration-500 hover:scale-[1.02] group">
+    {/* Shimmer Effect */}
+    <div className="absolute inset-0 -skew-x-12 animate-shimmer bg-gradient-to-r from-transparent via-white/10 to-transparent z-0 pointer-events-none"></div>
+
+    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity"></div>
+    <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-400 opacity-20 rounded-full blur-xl group-hover:opacity-30 transition-opacity"></div>
     
     <div className="flex flex-col justify-between h-full relative z-10">
       <div className="flex justify-between items-start">
-        <div>
+        <div className="animate-fade-in delay-100">
           <p className="text-indigo-200 text-xs font-bold uppercase tracking-wider mb-1">Общий баланс</p>
           <h2 className="text-3xl font-bold tracking-tight">{balance.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} {currency}</h2>
         </div>
@@ -117,7 +120,7 @@ const CreditCardComponent = ({ balance, currency, ownerName }: { balance: number
            </div>
            <span className="font-mono text-lg text-white/90 tracking-widest">****</span>
         </div>
-        <div className="text-right">
+        <div className="text-right animate-fade-in delay-200">
            <p className="text-[10px] text-indigo-200 uppercase font-bold mb-1">Владелец</p>
            <p className="font-medium text-sm uppercase truncate max-w-[120px]">{ownerName}</p>
         </div>
@@ -137,7 +140,7 @@ const OnboardingScreen = ({ onComplete }: { onComplete: (name: string, currency:
       <div className="w-full max-w-xs text-center">
         {step === 1 && (
           <div className="animate-slide-up">
-            <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl mx-auto flex items-center justify-center mb-8">
+            <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl mx-auto flex items-center justify-center mb-8 shadow-sm">
               <Sparkles size={40} />
             </div>
             <h1 className="text-2xl font-bold mb-2 text-slate-900">Добро пожаловать</h1>
@@ -149,7 +152,7 @@ const OnboardingScreen = ({ onComplete }: { onComplete: (name: string, currency:
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Например: Иван"
-                className="w-full mt-2 p-4 bg-slate-50 rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-indigo-100"
+                className="w-full mt-2 p-4 bg-slate-50 rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
                 autoFocus
               />
             </div>
@@ -157,7 +160,7 @@ const OnboardingScreen = ({ onComplete }: { onComplete: (name: string, currency:
             <button 
               onClick={() => name.trim() && setStep(2)}
               disabled={!name.trim()}
-              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all tap-active"
             >
               Далее
             </button>
@@ -169,12 +172,12 @@ const OnboardingScreen = ({ onComplete }: { onComplete: (name: string, currency:
             <h2 className="text-2xl font-bold mb-2 text-slate-900">Выберите валюту</h2>
             <p className="text-slate-500 mb-6">В какой валюте вы хотите вести учет?</p>
             
-            <div className="space-y-3 mb-8 max-h-[40vh] overflow-y-auto">
+            <div className="space-y-3 mb-8 max-h-[40vh] overflow-y-auto pr-2">
               {CURRENCIES.map(c => (
                 <button
                   key={c.code}
                   onClick={() => setCurrency(c.code)}
-                  className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${
+                  className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all tap-active ${
                     currency === c.code 
                       ? 'bg-indigo-600 text-white shadow-md' 
                       : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
@@ -188,14 +191,14 @@ const OnboardingScreen = ({ onComplete }: { onComplete: (name: string, currency:
 
             <button 
               onClick={() => onComplete(name, currency)}
-              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 active:scale-95 transition-transform"
+              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 tap-active transition-transform"
             >
               Начать работу
             </button>
             
             <button 
               onClick={() => setStep(1)}
-              className="mt-4 text-slate-400 text-sm font-medium"
+              className="mt-4 text-slate-400 text-sm font-medium hover:text-slate-600 transition-colors"
             >
               Назад
             </button>
@@ -432,10 +435,10 @@ const App: React.FC = () => {
       
       {activeTab !== 'ai' && (
         <header className="pt-10 px-6 pb-4 flex justify-between items-center bg-white z-20 shrink-0">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 animate-fade-in">
             <div 
               onClick={() => setIsProfileModalOpen(true)}
-              className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200 cursor-pointer flex-shrink-0"
+              className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden border border-slate-200 cursor-pointer flex-shrink-0 tap-active"
             >
                {userAvatar ? (
                  <img src={userAvatar} alt="Profile" className="w-full h-full object-cover" />
@@ -448,7 +451,7 @@ const App: React.FC = () => {
               <h1 className="text-lg font-bold text-slate-800 truncate max-w-[150px]">{userName}</h1>
             </div>
           </div>
-          <button className="relative p-2 rounded-full bg-slate-50 border border-slate-100">
+          <button className="relative p-2 rounded-full bg-slate-50 border border-slate-100 tap-active animate-fade-in">
             <Bell size={20} className="text-slate-600" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
           </button>
@@ -456,18 +459,18 @@ const App: React.FC = () => {
       )}
 
       {/* Main Content Area - Standard for all currently active tabs */}
-      <main className="flex-1 animate-fade-in px-6 pb-[100px] overflow-y-auto">
+      <main className="flex-1 px-6 pb-[100px] overflow-y-auto hide-scrollbar">
         
         {activeTab === 'home' && (
-          <div className="space-y-8 pb-6">
+          <div className="space-y-8 pb-6 animate-enter" key="home">
             <CreditCardComponent balance={totalBalance} currency={currencySymbol} ownerName={userName} />
 
             <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={() => { setTxType('income'); setIsTxModalOpen(true); }}
-                className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center gap-2 group active:scale-95 transition-transform"
+                className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center gap-2 group tap-active"
               >
-                <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                   <ArrowDownLeft size={20} />
                 </div>
                 <div className="text-left">
@@ -477,9 +480,9 @@ const App: React.FC = () => {
               </button>
               <button 
                 onClick={() => { setTxType('expense'); setIsTxModalOpen(true); }}
-                className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center gap-2 group active:scale-95 transition-transform"
+                className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center gap-2 group tap-active"
               >
-                <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center transition-transform group-hover:scale-110 duration-300">
                   <ArrowUpRight size={20} />
                 </div>
                 <div className="text-left">
@@ -507,10 +510,10 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'stats' && (
-          <div className="space-y-6 pb-6">
+          <div className="space-y-6 pb-6 animate-enter" key="stats">
             <h2 className="text-2xl font-bold">Статистика</h2>
             
-            <div className="h-64 bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 relative overflow-hidden">
+            <div className="h-64 bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 relative overflow-hidden animate-scale-in">
                <h3 className="text-sm font-medium text-slate-500 mb-4 px-2">Динамика баланса</h3>
                <ResponsiveContainer width="100%" height="85%">
                   <AreaChart data={generateChartData()}>
@@ -557,27 +560,27 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'wallet' && (
-          <div className="space-y-6 pb-6">
+          <div className="space-y-6 pb-6 animate-enter" key="wallet">
             <div className="flex justify-between items-end">
                <h2 className="text-2xl font-bold">Мои подписки</h2>
                <button 
                 onClick={() => setIsSubModalOpen(true)} 
-                className="bg-slate-900 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                className="bg-slate-900 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg tap-active"
                >
                  <Plus size={20} />
                </button>
             </div>
 
             {subscriptions.length === 0 ? (
-              <div className="bg-white rounded-[2rem] p-10 text-center border border-dashed border-slate-300">
+              <div className="bg-white rounded-[2rem] p-10 text-center border border-dashed border-slate-300 animate-scale-in">
                 <CreditCardIcon size={40} className="mx-auto text-slate-300 mb-4" />
                 <p className="text-slate-500 font-medium">Нет активных подписок</p>
                 <p className="text-xs text-slate-400 mt-2">Добавьте регулярные платежи для контроля</p>
               </div>
             ) : (
               <div className="grid gap-4">
-                {subscriptions.map(sub => (
-                  <div key={sub.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+                {subscriptions.map((sub, idx) => (
+                  <div key={sub.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between animate-enter" style={{animationDelay: `${idx * 100}ms`}}>
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-lg">
                         {sub.name.charAt(0).toUpperCase()}
@@ -600,7 +603,7 @@ const App: React.FC = () => {
                 ))}
               </div>
             )}
-             <div className="bg-indigo-600 rounded-[2rem] p-6 text-white mt-4">
+             <div className="bg-indigo-600 rounded-[2rem] p-6 text-white mt-4 animate-scale-in delay-200 shadow-lg shadow-indigo-200">
                 <h3 className="font-bold text-lg mb-1">Итого в месяц</h3>
                 <p className="opacity-80 text-sm mb-4">Общая сумма всех подписок</p>
                 <p className="text-3xl font-bold">{monthlySubscriptionCost.toLocaleString('ru-RU')} {currencySymbol}</p>
@@ -609,13 +612,13 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'settings' && (
-          <div className="space-y-6 pb-6">
+          <div className="space-y-6 pb-6 animate-enter" key="settings">
             <h2 className="text-2xl font-bold">Настройки</h2>
-            <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm">
+            <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm animate-scale-in">
                
                <div 
                  onClick={() => setIsProfileModalOpen(true)}
-                 className="p-4 border-b border-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+                 className="p-4 border-b border-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors tap-active"
                >
                   <div className="flex items-center gap-3">
                     <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600"><User size={20}/></div>
@@ -626,7 +629,7 @@ const App: React.FC = () => {
 
                <div 
                   onClick={() => setIsCurrencyModalOpen(true)}
-                  className="p-4 border-b border-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+                  className="p-4 border-b border-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors tap-active"
                >
                   <div className="flex items-center gap-3">
                     <div className="bg-emerald-50 p-2 rounded-xl text-emerald-600"><Wallet size={20}/></div>
@@ -637,16 +640,16 @@ const App: React.FC = () => {
 
                <div 
                  onClick={handleClearData}
-                 className="p-4 flex items-center justify-between cursor-pointer hover:bg-rose-50 transition-colors group"
+                 className="p-4 flex items-center justify-between cursor-pointer hover:bg-rose-50 transition-colors group tap-active"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-rose-50 p-2 rounded-xl text-rose-500 group-hover:bg-rose-100"><LogOut size={20}/></div>
+                    <div className="bg-rose-50 p-2 rounded-xl text-rose-500 group-hover:bg-rose-100 transition-colors"><LogOut size={20}/></div>
                     <span className="font-medium text-rose-500">Сбросить данные</span>
                   </div>
-                  <ChevronRight size={16} className="text-slate-300 group-hover:text-rose-400" />
+                  <ChevronRight size={16} className="text-slate-300 group-hover:text-rose-400 transition-colors" />
                </div>
             </div>
-            <p className="text-center text-xs text-slate-400 mt-10">CoinKeep v2.6 Mobile</p>
+            <p className="text-center text-xs text-slate-400 mt-10">CoinKeep v2.7 Mobile</p>
           </div>
         )}
 
@@ -659,13 +662,13 @@ const App: React.FC = () => {
       
       {/* Add Transaction Overlay */}
       {isTxModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
           <div className="bg-white w-full max-w-[480px] rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 pb-10 animate-slide-up max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold">
                 {txType === 'expense' ? 'Новый расход' : 'Новый доход'}
               </h3>
-              <button onClick={() => setIsTxModalOpen(false)} className="p-2 bg-slate-100 rounded-full">
+              <button onClick={() => setIsTxModalOpen(false)} className="p-2 bg-slate-100 rounded-full tap-active">
                 <X size={20} />
               </button>
             </div>
@@ -695,7 +698,7 @@ const App: React.FC = () => {
                       type="button"
                       key={cat.id}
                       onClick={() => setSelectedCategory(cat.id)}
-                      className={`flex flex-col items-center justify-center gap-1 p-2 rounded-2xl transition-all ${
+                      className={`flex flex-col items-center justify-center gap-1 p-2 rounded-2xl transition-all tap-active ${
                         selectedCategory === cat.id 
                           ? `${cat.color} ring-2 ring-offset-1 ring-slate-200 shadow-sm scale-105` 
                           : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
@@ -731,7 +734,7 @@ const App: React.FC = () => {
 
               <button 
                 type="submit" 
-                className={`w-full py-4 rounded-2xl font-bold text-white shadow-lg text-lg active:scale-95 transition-transform ${
+                className={`w-full py-4 rounded-2xl font-bold text-white shadow-lg text-lg tap-active transition-transform ${
                   txType === 'expense' ? 'bg-rose-500 shadow-rose-200' : 'bg-emerald-500 shadow-emerald-200'
                 }`}
               >
@@ -744,11 +747,11 @@ const App: React.FC = () => {
 
       {/* Add Subscription Overlay */}
       {isSubModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
           <div className="bg-white w-full max-w-[480px] rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 pb-10 animate-slide-up">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold">Новая подписка</h3>
-              <button onClick={() => setIsSubModalOpen(false)} className="p-2 bg-slate-100 rounded-full">
+              <button onClick={() => setIsSubModalOpen(false)} className="p-2 bg-slate-100 rounded-full tap-active">
                 <X size={20} />
               </button>
             </div>
@@ -772,7 +775,7 @@ const App: React.FC = () => {
 
               <input type="hidden" name="category" value="Развлечения" />
               
-              <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform mt-4">
+              <button type="submit" className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg shadow-lg tap-active transition-transform mt-4">
                 Сохранить подписку
               </button>
             </form>
@@ -782,11 +785,11 @@ const App: React.FC = () => {
 
       {/* Profile Modal */}
       {isProfileModalOpen && (
-         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
           <div className="bg-white w-full max-w-[480px] rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 pb-10 animate-slide-up">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold">Редактировать профиль</h3>
-              <button onClick={() => setIsProfileModalOpen(false)} className="p-2 bg-slate-100 rounded-full">
+              <button onClick={() => setIsProfileModalOpen(false)} className="p-2 bg-slate-100 rounded-full tap-active">
                 <X size={20} />
               </button>
             </div>
@@ -804,7 +807,7 @@ const App: React.FC = () => {
                     <button 
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full shadow-lg"
+                        className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full shadow-lg tap-active"
                     >
                         <Upload size={16} />
                     </button>
@@ -829,7 +832,7 @@ const App: React.FC = () => {
                  />
                </div>
 
-               <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 active:scale-95 transition-transform">
+               <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 tap-active transition-transform">
                  Сохранить изменения
                </button>
             </form>
@@ -839,11 +842,11 @@ const App: React.FC = () => {
 
       {/* Currency Modal */}
       {isCurrencyModalOpen && (
-         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
           <div className="bg-white w-full max-w-[480px] rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 pb-10 animate-slide-up max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold">Смена валюты</h3>
-              <button onClick={() => setIsCurrencyModalOpen(false)} className="p-2 bg-slate-100 rounded-full">
+              <button onClick={() => setIsCurrencyModalOpen(false)} className="p-2 bg-slate-100 rounded-full tap-active">
                 <X size={20} />
               </button>
             </div>
@@ -857,7 +860,7 @@ const App: React.FC = () => {
                  <button
                    key={c.code}
                    onClick={() => handleChangeCurrency(c.code)}
-                   className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${
+                   className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all tap-active ${
                      currencyCode === c.code 
                        ? 'bg-indigo-600 text-white shadow-md' 
                        : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
