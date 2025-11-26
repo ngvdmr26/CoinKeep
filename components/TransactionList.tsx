@@ -1,6 +1,6 @@
 import React from 'react';
 import { Transaction } from '../types.ts';
-import { ShoppingBag, Coffee, Home, Car, Smartphone, Zap, Trash2, Dumbbell, Gift } from 'lucide-react';
+import { ShoppingBag, Coffee, Home, Car, Smartphone, Zap, Trash2, Dumbbell, Gift, Briefcase } from 'lucide-react';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -24,6 +24,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
       case 'услуги': return <Zap size={20} />;
       case 'развлечения': return <Smartphone size={20} />;
       case 'спорт': return <Dumbbell size={20} />;
+      case 'доход': return <Briefcase size={20} />;
       default: return <Gift size={20} />;
     }
   };
@@ -36,11 +37,17 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
       case 'транспорт': return 'bg-indigo-100 text-indigo-600';
       case 'жкх': return 'bg-yellow-100 text-yellow-600';
       case 'спорт': return 'bg-teal-100 text-teal-600';
+      case 'доход': return 'bg-emerald-100 text-emerald-600';
       default: return 'bg-slate-100 text-slate-600';
     }
   };
 
-  const displayTransactions = limit ? transactions.slice(0, limit) : transactions;
+  // Sort transactions by date descending (newest first) before displaying
+  const sortedTransactions = [...transactions].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  const displayTransactions = limit ? sortedTransactions.slice(0, limit) : sortedTransactions;
 
   if (transactions.length === 0) {
     return (

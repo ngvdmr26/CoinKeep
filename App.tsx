@@ -27,17 +27,12 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, CartesianGrid } from 'recharts';
 
-// Исправлены импорты: добавлены расширения файлов
 import { Transaction, MonthlyData, Subscription } from './types.ts';
 import { StatCard } from './components/StatCard.tsx';
 import { TransactionList } from './components/TransactionList.tsx';
-// AIAssistant временно отключен
-// import { AIAssistant } from './components/AIAssistant.tsx';
 
 // -- Constants & Helpers --
 
-// Base Currency for internal calculation logic: USD
-// Rate = How many units of currency per 1 USD
 const DEFAULT_RATES: Record<string, number> = {
   'USD': 1,
   'RUB': 96.5,
@@ -71,8 +66,6 @@ const BottomNav = ({ active, onChange }: { active: string, onChange: (val: strin
   const items = [
     { id: 'home', icon: <Home size={24} />, label: 'Главная' },
     { id: 'stats', icon: <PieChart size={24} />, label: 'Отчеты' },
-    // Вкладка AI отключена
-    // { id: 'ai', icon: <Sparkles size={24} />, label: 'Советник' },
     { id: 'wallet', icon: <Wallet size={24} />, label: 'Кошелек' },
     { id: 'settings', icon: <Settings size={24} />, label: 'Меню' },
   ];
@@ -267,7 +260,6 @@ const App: React.FC = () => {
     const fetchRates = async () => {
       setRatesLoading(true);
       try {
-        // Fetch Base USD rates
         const res = await fetch('https://open.er-api.com/v6/latest/USD');
         const data = await res.json();
         if (data && data.rates) {
@@ -375,11 +367,14 @@ const App: React.FC = () => {
     
     if (!amount) return;
 
+    // If type is Income, force category to 'Доход', otherwise use selected
+    const category = type === 'expense' ? selectedCategory : 'Доход';
+
     const newTx: Transaction = {
       id: Date.now().toString(),
       date: formData.get('date') as string,
       merchant: formData.get('merchant') as string,
-      category: selectedCategory,
+      category: category,
       amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
       type,
       status: 'completed'
@@ -412,16 +407,39 @@ const App: React.FC = () => {
     setIsProfileModalOpen(false);
   }
 
+  // Обновленная функция генерации данных для графика
   const generateChartData = (): MonthlyData[] => {
-    const base = Math.max(totalBalance, 100); 
-    return [
-      { name: 'Май', income: base * 0.9, expenses: base * 0.7 },
-      { name: 'Июн', income: base * 1.1, expenses: base * 0.8 },
-      { name: 'Июл', income: base * 0.95, expenses: base * 1.0 },
-      { name: 'Авг', income: base * 1.2, expenses: base * 0.9 },
-      { name: 'Сен', income: base * 1.0, expenses: base * 0.6 },
-      { name: 'Окт', income: base * 1.05, expenses: base * 0.85 },
-    ];
+    const data: MonthlyData[] = [];
+    const today = new Date();
+    
+    // Создаем точки для последних 6 месяцев (включая текущий)
+    for (let i = 5; i >= 0; i--) {
+      // Вычисляем год и месяц
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      
+      // Вычисляем ПОСЛЕДНЮЮ секунду этого месяца
+      // (год, месяц + 1, день 0) дает последний день текущего месяца
+      const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      // Фильтруем и суммируем транзакции, которые произошли ДО или В этот момент времени
+      const cumulativeBalance = transactions.reduce((acc, tx) => {
+        // Парсим дату транзакции. Обычно это YYYY-MM-DD (00:00:00 local)
+        const txDate = new Date(tx.date);
+        
+        // Сравниваем таймштампы
+        if (txDate.getTime() <= endOfMonth.getTime()) {
+          return acc + tx.amount; 
+        }
+        return acc;
+      }, 0);
+
+      data.push({
+        name: d.toLocaleDateString('ru-RU', { month: 'short' }),
+        balance: cumulativeBalance,
+      });
+    }
+
+    return data;
   };
 
   if (isLoading) return null;
@@ -458,7 +476,7 @@ const App: React.FC = () => {
         </header>
       )}
 
-      {/* Main Content Area - Standard for all currently active tabs */}
+      {/* Main Content Area */}
       <main className="flex-1 px-6 pb-[100px] overflow-y-auto hide-scrollbar">
         
         {activeTab === 'home' && (
@@ -513,33 +531,35 @@ const App: React.FC = () => {
           <div className="space-y-6 pb-6 animate-enter" key="stats">
             <h2 className="text-2xl font-bold">Статистика</h2>
             
-            <div className="h-64 bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 relative overflow-hidden animate-scale-in">
-               <h3 className="text-sm font-medium text-slate-500 mb-4 px-2">Динамика баланса</h3>
-               <ResponsiveContainer width="100%" height="85%">
-                  <AreaChart data={generateChartData()}>
-                    <defs>
-                      <linearGradient id="colorIncomeMobile" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#818cf8" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{fill: '#94a3b8', fontSize: 10}} 
-                      dy={10}
-                    />
-                    <Tooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', borderRadius: '12px', border: 'none', color: 'white', fontSize: '12px' }}
-                        itemStyle={{ color: '#94a3b8' }}
-                        labelStyle={{ color: '#e2e8f0', fontWeight: 'bold' }}
-                        formatter={(value: number) => [`${value.toFixed(0)} ${currencySymbol}`, 'Сумма']}
-                      />
-                    <Area type="monotone" dataKey="income" stroke="#6366f1" strokeWidth={3} fill="url(#colorIncomeMobile)" />
-                  </AreaChart>
-               </ResponsiveContainer>
+            <div className="h-64 bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 relative overflow-hidden animate-scale-in flex flex-col">
+               <h3 className="text-sm font-medium text-slate-500 mb-4 px-2 shrink-0">Динамика баланса</h3>
+               <div className="flex-1 w-full min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={generateChartData()}>
+                        <defs>
+                          <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#818cf8" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{fill: '#94a3b8', fontSize: 10}} 
+                          dy={10}
+                        />
+                        <Tooltip 
+                            contentStyle={{ backgroundColor: '#1e293b', borderRadius: '12px', border: 'none', color: 'white', fontSize: '12px' }}
+                            itemStyle={{ color: '#94a3b8' }}
+                            labelStyle={{ color: '#e2e8f0', fontWeight: 'bold' }}
+                            formatter={(value: number) => [`${value.toLocaleString('ru-RU')} ${currencySymbol}`, 'Баланс']}
+                          />
+                        <Area type="monotone" dataKey="balance" stroke="#6366f1" strokeWidth={3} fill="url(#colorBalance)" />
+                      </AreaChart>
+                  </ResponsiveContainer>
+               </div>
             </div>
 
             <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
@@ -649,7 +669,7 @@ const App: React.FC = () => {
                   <ChevronRight size={16} className="text-slate-300 group-hover:text-rose-400 transition-colors" />
                </div>
             </div>
-            <p className="text-center text-xs text-slate-400 mt-10">CoinKeep v2.7 Mobile</p>
+            <p className="text-center text-xs text-slate-400 mt-10">CoinKeep v2.8 Mobile</p>
           </div>
         )}
 
@@ -658,7 +678,6 @@ const App: React.FC = () => {
       <BottomNav active={activeTab} onChange={setActiveTab} />
 
       {/* -- Modals -- */}
-      {/* ... (Existing modals for Tx, Sub, Profile remain mostly same, Currency modal updated below) ... */}
       
       {/* Add Transaction Overlay */}
       {isTxModalOpen && (
@@ -690,26 +709,29 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-400 uppercase ml-1 mb-2 block">Категория</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {CATEGORIES.map((cat) => (
-                    <button
-                      type="button"
-                      key={cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={`flex flex-col items-center justify-center gap-1 p-2 rounded-2xl transition-all tap-active ${
-                        selectedCategory === cat.id 
-                          ? `${cat.color} ring-2 ring-offset-1 ring-slate-200 shadow-sm scale-105` 
-                          : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
-                      }`}
-                    >
-                      {cat.icon}
-                      <span className="text-[10px] font-medium">{cat.label}</span>
-                    </button>
-                  ))}
+              {/* Show categories ONLY for Expense */}
+              {txType === 'expense' && (
+                <div className="animate-fade-in">
+                  <label className="text-xs font-bold text-slate-400 uppercase ml-1 mb-2 block">Категория</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        type="button"
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat.id)}
+                        className={`flex flex-col items-center justify-center gap-1 p-2 rounded-2xl transition-all tap-active ${
+                          selectedCategory === cat.id 
+                            ? `${cat.color} ring-2 ring-offset-1 ring-slate-200 shadow-sm scale-105` 
+                            : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                        }`}
+                      >
+                        {cat.icon}
+                        <span className="text-[10px] font-medium">{cat.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Дата</label>

@@ -19,8 +19,10 @@ export interface Subscription {
 
 export interface MonthlyData {
   name: string;
-  income: number;
-  expenses: number;
+  income?: number;
+  expenses?: number;
+  balance?: number;
+  dateObj?: Date;
 }
 
 export interface AIInsight {
