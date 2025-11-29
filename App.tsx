@@ -414,15 +414,14 @@ const generateChartData = (): MonthlyData[] => {
   
   // Создаем точки для каждого часа сегодня (0-23)
   for (let hour = 0; hour < 24; hour++) {
-    const hourStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, 0, 0);
     const hourEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, 59, 59, 999);
     
-    // Фильтруем и суммируем транзакции за этот час
+    // Суммируем ВСЕ транзакции, которые произошли до конца этого часа (накопительно)
     const cumulativeBalance = transactions.reduce((acc, tx) => {
       const txDate = new Date(tx.date);
       
-      // Сравниваем таймштампы в пределах этого часа
-      if (txDate.getTime() >= hourStart.getTime() && txDate.getTime() <= hourEnd.getTime()) {
+      // Сравниваем: транзакция произошла не позже конца этого часа?
+      if (txDate <= hourEnd) {
         return acc + tx.amount;
       }
       return acc;
@@ -742,14 +741,14 @@ const generateChartData = (): MonthlyData[] => {
               </div>
 
               <div>
-                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Название</label>
-                 <input 
-                    name="merchant" 
-                    type="text" 
-                    placeholder="Например: Стипендия  "
-                    required
-                    className="w-full mt-2 p-4 bg-slate-50 rounded-2xl font-medium outline-none focus:ring-2 focus:ring-indigo-100"
-                 />
+                <label className="text-xs font-bold text-slate-400 uppercase ml-1">Название</label>
+                <input 
+                  name="merchant" 
+                  type="text" 
+                  placeholder={txType === 'income' ? "Например: Стипендия" : "Например: Супермаркет"}
+                  required
+                  className="w-full mt-2 p-4 bg-slate-50 rounded-2xl font-medium outline-none focus:ring-2 focus:ring-indigo-100"
+                />
               </div>
 
               <button 
