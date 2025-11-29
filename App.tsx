@@ -70,6 +70,20 @@ interface DailyStat {
   change: number;
 }
 
+// -- Service Brand Colors --
+const getServiceStyle = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes('netflix')) return 'bg-red-600 text-white';
+  if (n.includes('youtube')) return 'bg-red-500 text-white';
+  if (n.includes('spotify')) return 'bg-green-500 text-white';
+  if (n.includes('telegram')) return 'bg-sky-500 text-white';
+  if (n.includes('yandex') || n.includes('яндекс')) return 'bg-yellow-400 text-black';
+  if (n.includes('apple') || n.includes('icloud')) return 'bg-zinc-900 text-white';
+  if (n.includes('steam')) return 'bg-blue-900 text-white';
+  if (n.includes('discord')) return 'bg-indigo-500 text-white';
+  return 'bg-indigo-50 text-indigo-600'; // Default
+};
+
 // -- Components for Mobile Layout --
 
 const BottomNav = ({ active, onChange }: { active: string, onChange: (val: string) => void }) => {
@@ -544,39 +558,38 @@ const App: React.FC = () => {
           <div className="space-y-6 pb-6 animate-enter" key="stats">
             <h2 className="text-2xl font-bold">Статистика</h2>
             
-            {/* New "Circles" Balance Dynamics */}
+            {/* New "Circles" Balance Dynamics - Improved Layout */}
             <div className="space-y-4">
                <h3 className="text-sm font-medium text-slate-500 px-1">Динамика по дням (Последние 7 дней)</h3>
-               <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4 pt-2 px-1">
+               <div className="flex flex-wrap justify-center gap-4 px-1">
                  {generateWeeklyStats().map((day, idx) => {
                    const isPositive = day.change > 0;
                    const isNegative = day.change < 0;
                    const isNeutral = day.change === 0;
 
                    return (
-                     <div key={idx} className="flex flex-col items-center gap-2 animate-scale-in" style={{animationDelay: `${idx * 50}ms`}}>
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{day.dayName}</span>
+                     <div key={idx} className="flex flex-col items-center gap-1 animate-scale-in" style={{animationDelay: `${idx * 50}ms`}}>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{day.dayName}</span>
                         
-                        {/* Circle Container */}
-                        <div className={`relative w-20 h-20 rounded-full flex items-center justify-center border-4 shadow-sm transition-transform hover:scale-105 ${
+                        {/* Circle Container - Slightly Smaller for Grid */}
+                        <div className={`relative w-[4.5rem] h-[4.5rem] rounded-full flex items-center justify-center border-[3px] shadow-sm transition-transform hover:scale-105 ${
                           isPositive ? 'border-emerald-100 bg-emerald-50/50' : 
                           isNegative ? 'border-rose-100 bg-rose-50/50' : 
                           'border-slate-100 bg-white'
                         }`}>
                            <div className="text-center">
-                              <span className="block text-[10px] text-slate-400 font-medium">Баланс</span>
-                              <span className="block text-xs font-bold text-slate-800 truncate max-w-[60px]">
+                              <span className="block text-[10px] font-bold text-slate-800 truncate max-w-[55px]">
                                 {day.balance >= 1000000 
                                   ? `${(day.balance / 1000000).toFixed(1)}M` 
                                   : day.balance >= 1000 
-                                    ? `${(day.balance / 1000).toFixed(1)}k` 
+                                    ? `${(day.balance / 1000).toFixed(0)}k` 
                                     : day.balance}
                               </span>
                            </div>
 
                            {/* Change Badge */}
                            {!isNeutral && (
-                             <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold text-white border-2 border-white shadow-sm ${
+                             <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold text-white border-2 border-white shadow-sm ${
                                isPositive ? 'bg-emerald-500' : 'bg-rose-500'
                              }`}>
                                {isPositive ? '+' : ''}{day.change >= 1000 || day.change <= -1000 
@@ -631,7 +644,8 @@ const App: React.FC = () => {
                 {subscriptions.map((sub, idx) => (
                   <div key={sub.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between animate-enter" style={{animationDelay: `${idx * 100}ms`}}>
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-bold text-lg">
+                      {/* Subscription Icon with Brand Color */}
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg ${getServiceStyle(sub.name)}`}>
                         {sub.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -777,7 +791,7 @@ const App: React.FC = () => {
                  <input 
                     name="merchant" 
                     type="text" 
-                    placeholder="Например: Супермаркет"
+                    placeholder={txType === 'expense' ? "Например: Супермаркет" : "Например: Стипендия"}
                     required
                     className="w-full mt-2 p-4 bg-slate-50 rounded-2xl font-medium outline-none focus:ring-2 focus:ring-indigo-100"
                  />
