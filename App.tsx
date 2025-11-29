@@ -23,11 +23,13 @@ import {
   Sparkles,
   Upload,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
+  Minus
 } from 'lucide-react';
-import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, CartesianGrid } from 'recharts';
 
-import { Transaction, MonthlyData, Subscription } from './types.ts';
+import { Transaction, Subscription } from './types.ts';
 import { StatCard } from './components/StatCard.tsx';
 import { TransactionList } from './components/TransactionList.tsx';
 
@@ -59,6 +61,14 @@ const CATEGORIES = [
   { id: 'Спорт', label: 'Спорт', icon: <Dumbbell size={24} />, color: 'bg-teal-100 text-teal-600' },
   { id: 'Доход', label: 'Доход', icon: <Briefcase size={24} />, color: 'bg-emerald-100 text-emerald-600' },
 ];
+
+// -- Interface for Daily Stats --
+interface DailyStat {
+  dayName: string;
+  fullDate: string;
+  balance: number;
+  change: number;
+}
 
 // -- Components for Mobile Layout --
 
@@ -407,37 +417,43 @@ const App: React.FC = () => {
     setIsProfileModalOpen(false);
   }
 
-  // Обновленная функция генерации данных для графика
-const generateChartData = (): MonthlyData[] => {
-  const data: MonthlyData[] = [];
-  const today = new Date();
-  
-  // Создаем точки для каждого часа сегодня (0-23)
-  for (let hour = 0; hour < 24; hour++) {
-    const hourEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, 59, 59, 999);
+  // Обновленная функция для генерации еженедельных "пузырьков"
+  const generateWeeklyStats = (): DailyStat[] => {
+    const data: DailyStat[] = [];
+    const today = new Date();
     
-    // Суммируем ВСЕ транзакции, которые произошли до конца этого часа (накопительно)
-    const cumulativeBalance = transactions.reduce((acc, tx) => {
-      const txDate = new Date(tx.date);
+    // Создаем точки для последних 7 дней
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
       
-      // Сравниваем: транзакция произошла не позже конца этого часа?
-      if (txDate <= hourEnd) {
-        return acc + tx.amount;
-      }
-      return acc;
-    }, 0);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
 
-    // Форматируем час (00:00, 01:00, ..., 23:00)
-    const hourLabel = `${String(hour).padStart(2, '0')}:00`;
-    
-    data.push({
-      name: hourLabel,
-      balance: cumulativeBalance,
-    });
-  }
+      // Баланс на конец дня
+      const balance = transactions.reduce((acc, tx) => {
+        if (tx.date <= dateString) return acc + tx.amount; 
+        return acc;
+      }, 0);
 
-  return data;
-};
+      // Изменение за конкретно ЭТОТ день
+      const change = transactions.reduce((acc, tx) => {
+        if (tx.date === dateString) return acc + tx.amount;
+        return acc;
+      }, 0);
+
+      data.push({
+        dayName: d.toLocaleDateString('ru-RU', { weekday: 'short' }),
+        fullDate: d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }),
+        balance,
+        change
+      });
+    }
+
+    return data;
+  };
 
   if (isLoading) return null;
 
@@ -528,38 +544,54 @@ const generateChartData = (): MonthlyData[] => {
           <div className="space-y-6 pb-6 animate-enter" key="stats">
             <h2 className="text-2xl font-bold">Статистика</h2>
             
-            <div className="h-64 bg-white rounded-[2rem] p-4 shadow-sm border border-slate-100 relative overflow-hidden animate-scale-in flex flex-col">
-               <h3 className="text-sm font-medium text-slate-500 mb-4 px-2 shrink-0">Динамика баланса</h3>
-               <div className="flex-1 w-full min-h-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={generateChartData()}>
-                        <defs>
-                          <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#818cf8" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis 
-                          dataKey="name" 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{fill: '#94a3b8', fontSize: 10}} 
-                          dy={10}
-                        />
-                        <Tooltip 
-                            contentStyle={{ backgroundColor: '#1e293b', borderRadius: '12px', border: 'none', color: 'white', fontSize: '12px' }}
-                            itemStyle={{ color: '#94a3b8' }}
-                            labelStyle={{ color: '#e2e8f0', fontWeight: 'bold' }}
-                            formatter={(value: number) => [`${value.toLocaleString('ru-RU')} ${currencySymbol}`, 'Баланс']}
-                          />
-                        <Area type="monotone" dataKey="balance" stroke="#6366f1" strokeWidth={3} fill="url(#colorBalance)" />
-                      </AreaChart>
-                  </ResponsiveContainer>
+            {/* New "Circles" Balance Dynamics */}
+            <div className="space-y-4">
+               <h3 className="text-sm font-medium text-slate-500 px-1">Динамика по дням (Последние 7 дней)</h3>
+               <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4 pt-2 px-1">
+                 {generateWeeklyStats().map((day, idx) => {
+                   const isPositive = day.change > 0;
+                   const isNegative = day.change < 0;
+                   const isNeutral = day.change === 0;
+
+                   return (
+                     <div key={idx} className="flex flex-col items-center gap-2 animate-scale-in" style={{animationDelay: `${idx * 50}ms`}}>
+                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{day.dayName}</span>
+                        
+                        {/* Circle Container */}
+                        <div className={`relative w-20 h-20 rounded-full flex items-center justify-center border-4 shadow-sm transition-transform hover:scale-105 ${
+                          isPositive ? 'border-emerald-100 bg-emerald-50/50' : 
+                          isNegative ? 'border-rose-100 bg-rose-50/50' : 
+                          'border-slate-100 bg-white'
+                        }`}>
+                           <div className="text-center">
+                              <span className="block text-[10px] text-slate-400 font-medium">Баланс</span>
+                              <span className="block text-xs font-bold text-slate-800 truncate max-w-[60px]">
+                                {day.balance >= 1000000 
+                                  ? `${(day.balance / 1000000).toFixed(1)}M` 
+                                  : day.balance >= 1000 
+                                    ? `${(day.balance / 1000).toFixed(1)}k` 
+                                    : day.balance}
+                              </span>
+                           </div>
+
+                           {/* Change Badge */}
+                           {!isNeutral && (
+                             <div className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold text-white border-2 border-white shadow-sm ${
+                               isPositive ? 'bg-emerald-500' : 'bg-rose-500'
+                             }`}>
+                               {isPositive ? '+' : ''}{day.change >= 1000 || day.change <= -1000 
+                                  ? `${Math.abs(day.change / 1000).toFixed(0)}k` 
+                                  : Math.abs(day.change)}
+                             </div>
+                           )}
+                        </div>
+                     </div>
+                   );
+                 })}
                </div>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 pt-2">
               <StatCard title="Доход" value={`+${totalIncome.toFixed(0)} ${currencySymbol}`} color="emerald" icon={<ArrowDownLeft size={16}/>} />
               <StatCard title="Расход" value={`-${totalExpenses.toFixed(0)} ${currencySymbol}`} color="rose" icon={<ArrowUpRight size={16}/>} />
               <StatCard title="Подписки" value={`${monthlySubscriptionCost.toFixed(0)} ${currencySymbol}`} color="amber" icon={<CreditCardIcon size={16}/>} />
@@ -666,7 +698,7 @@ const generateChartData = (): MonthlyData[] => {
                   <ChevronRight size={16} className="text-slate-300 group-hover:text-rose-400 transition-colors" />
                </div>
             </div>
-            <p className="text-center text-xs text-slate-400 mt-10">CoinKeep v2.8 Mobile</p>
+            <p className="text-center text-xs text-slate-400 mt-10">CoinKeep v2.9 Mobile</p>
           </div>
         )}
 
@@ -741,14 +773,14 @@ const generateChartData = (): MonthlyData[] => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase ml-1">Название</label>
-                <input 
-                  name="merchant" 
-                  type="text" 
-                  placeholder={txType === 'income' ? "Например: Стипендия" : "Например: Супермаркет"}
-                  required
-                  className="w-full mt-2 p-4 bg-slate-50 rounded-2xl font-medium outline-none focus:ring-2 focus:ring-indigo-100"
-                />
+                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Название</label>
+                 <input 
+                    name="merchant" 
+                    type="text" 
+                    placeholder="Например: Супермаркет"
+                    required
+                    className="w-full mt-2 p-4 bg-slate-50 rounded-2xl font-medium outline-none focus:ring-2 focus:ring-indigo-100"
+                 />
               </div>
 
               <button 
