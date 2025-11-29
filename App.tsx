@@ -408,39 +408,37 @@ const App: React.FC = () => {
   }
 
   // Обновленная функция генерации данных для графика
-  const generateChartData = (): MonthlyData[] => {
-    const data: MonthlyData[] = [];
-    const today = new Date();
+const generateChartData = (): MonthlyData[] => {
+  const data: MonthlyData[] = [];
+  const today = new Date();
+  
+  // Создаем точки для каждого часа сегодня (0-23)
+  for (let hour = 0; hour < 24; hour++) {
+    const hourStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, 0, 0);
+    const hourEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, 59, 59, 999);
     
-    // Создаем точки для последних 6 месяцев (включая текущий)
-    for (let i = 5; i >= 0; i--) {
-      // Вычисляем год и месяц
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    // Фильтруем и суммируем транзакции за этот час
+    const cumulativeBalance = transactions.reduce((acc, tx) => {
+      const txDate = new Date(tx.date);
       
-      // Вычисляем ПОСЛЕДНЮЮ секунду этого месяца
-      // (год, месяц + 1, день 0) дает последний день текущего месяца
-      const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+      // Сравниваем таймштампы в пределах этого часа
+      if (txDate.getTime() >= hourStart.getTime() && txDate.getTime() <= hourEnd.getTime()) {
+        return acc + tx.amount;
+      }
+      return acc;
+    }, 0);
 
-      // Фильтруем и суммируем транзакции, которые произошли ДО или В этот момент времени
-      const cumulativeBalance = transactions.reduce((acc, tx) => {
-        // Парсим дату транзакции. Обычно это YYYY-MM-DD (00:00:00 local)
-        const txDate = new Date(tx.date);
-        
-        // Сравниваем таймштампы
-        if (txDate.getTime() <= endOfMonth.getTime()) {
-          return acc + tx.amount; 
-        }
-        return acc;
-      }, 0);
+    // Форматируем час (00:00, 01:00, ..., 23:00)
+    const hourLabel = `${String(hour).padStart(2, '0')}:00`;
+    
+    data.push({
+      name: hourLabel,
+      balance: cumulativeBalance,
+    });
+  }
 
-      data.push({
-        name: d.toLocaleDateString('ru-RU', { month: 'short' }),
-        balance: cumulativeBalance,
-      });
-    }
-
-    return data;
-  };
+  return data;
+};
 
   if (isLoading) return null;
 
@@ -748,7 +746,7 @@ const App: React.FC = () => {
                  <input 
                     name="merchant" 
                     type="text" 
-                    placeholder="Например: Супермаркет"
+                    placeholder="Например: Стипендия  "
                     required
                     className="w-full mt-2 p-4 bg-slate-50 rounded-2xl font-medium outline-none focus:ring-2 focus:ring-indigo-100"
                  />
