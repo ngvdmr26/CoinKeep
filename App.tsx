@@ -62,6 +62,11 @@ const CATEGORIES = [
   { id: 'Доход', label: 'Доход', icon: <Briefcase size={24} />, color: 'bg-emerald-100 text-emerald-600' },
 ];
 
+// Helper to strictly round to 2 decimal places to avoid floating point errors (e.g. 1993.91 instead of 1994)
+const roundAmount = (num: number) => {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+};
+
 // -- Interface for Daily Stats --
 interface DailyStat {
   dayName: string;
@@ -323,7 +328,7 @@ const App: React.FC = () => {
     // Amount in Target
     const result = inUSD * rateTo;
     
-    return Math.round(result * 100) / 100;
+    return roundAmount(result);
   };
 
   const handleChangeCurrency = (newCode: string) => {
@@ -377,16 +382,20 @@ const App: React.FC = () => {
     setShowOnboarding(false);
   };
 
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + Math.abs(curr.amount), 0);
-  const totalBalance = totalIncome - totalExpenses;
-  const monthlySubscriptionCost = subscriptions.filter(s => s.active).reduce((acc, curr) => acc + curr.amount, 0);
+  // Helper sums need rounding too
+  const totalIncome = roundAmount(transactions.filter(t => t.type === 'income').reduce((acc, curr) => acc + curr.amount, 0));
+  const totalExpenses = roundAmount(transactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + Math.abs(curr.amount), 0));
+  const totalBalance = roundAmount(totalIncome - totalExpenses);
+  const monthlySubscriptionCost = roundAmount(subscriptions.filter(s => s.active).reduce((acc, curr) => acc + curr.amount, 0));
 
   // Handlers
   const handleAddTransaction = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const amount = parseFloat(formData.get('amount') as string);
+    const rawAmount = parseFloat(formData.get('amount') as string);
+    // Explicitly round input to 2 decimals to prevent floating point drift
+    const amount = roundAmount(rawAmount);
+    
     const type = txType;
     
     if (!amount) return;
@@ -415,7 +424,7 @@ const App: React.FC = () => {
     const newSub: Subscription = {
       id: Date.now().toString(),
       name: formData.get('name') as string,
-      amount: parseFloat(formData.get('amount') as string),
+      amount: roundAmount(parseFloat(formData.get('amount') as string)),
       billingDay: parseInt(formData.get('billingDay') as string),
       category: formData.get('category') as string,
       active: true
@@ -461,8 +470,8 @@ const App: React.FC = () => {
       data.push({
         dayName: d.toLocaleDateString('ru-RU', { weekday: 'short' }),
         fullDate: d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }),
-        balance,
-        change
+        balance: roundAmount(balance),
+        change: roundAmount(change)
       });
     }
 
